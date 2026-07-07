@@ -1,0 +1,174 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "sundial://schema/envelope-0.1.schema.json",
+  "title": "Sundial diagnostic envelope",
+  "description": "v0.1 of the `sundial check --json` output envelope. The envelope IS the product surface; its shape is treated as API. Versioned independently of the tool. Spec of record: vault talk/diagnostic-envelope.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sundial", "run", "diagnostics", "summary"],
+  "properties": {
+    "sundial": {
+      "description": "Envelope schema version. Independent of the tool version.",
+      "const": "0.1"
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "mode"],
+      "properties": {
+        "at": {
+          "description": "ISO-8601 timestamp the run was produced. Excluded from determinism guarantees.",
+          "type": "string",
+          "format": "date-time"
+        },
+        "mode": {
+          "description": "text = ordinary TSX codebase (pillar 1). graph = graph-canonical project (pillar 3); enables `target` addressing.",
+          "enum": ["text", "graph"]
+        }
+      }
+    },
+    "diagnostics": {
+      "description": "Deterministically ordered: by span.file, then span.range[0], then code.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/diagnostic" }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["errors", "warnings", "suggestions", "bySource"],
+      "properties": {
+        "errors": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "integer", "minimum": 0 },
+        "suggestions": { "type": "integer", "minimum": 0 },
+        "bySource": {
+          "description": "Diagnostic count keyed by source (e.g. { ts: 3, sundial: 1 }).",
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "source", "severity", "message", "span", "docs"],
+      "properties": {
+        "code": {
+          "description": "Stable code. TS diagnostics pass through with their native code (e.g. TS2322). Sundial rules are SND-namespaced, zero-padded (SND0001). Append-only, never reused, meaning frozen.",
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "description": "ts = passed through from the TypeScript toolchain. sundial = a framework-level SND rule.",
+          "enum": ["ts", "sundial"]
+        },
+        "severity": {
+          "description": "Mirrors the TS language service's three tiers.",
+          "enum": ["error", "warning", "suggestion"]
+        },
+        "message": {
+          "description": "Human-readable prose. Advisory only: nothing agent-relevant lives only here; the authoritative form is `facts`.",
+          "type": "string"
+        },
+        "span": { "$ref": "#/definitions/span" },
+        "target": {
+          "description": "Semantic address into the graph. Absent in text mode. Both span.contentHash and target.nodeHash provide staleness detection.",
+          "$ref": "#/definitions/target"
+        },
+        "facts": {
+          "description": "Structured expected/observed data (e.g. { declared: [], observed: [\"net\"] }). Authoritative machine surface.",
+          "type": "object"
+        },
+        "repairs": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/repair" }
+        },
+        "docs": {
+          "description": "Stable rule URI, resolved by the skills doc (e.g. sundial://rules/SND0001).",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "range", "contentHash"],
+      "properties": {
+        "file": {
+          "description": "Repo-relative POSIX path. On graph-canonical projects this addresses the projection.",
+          "type": "string"
+        },
+        "range": {
+          "description": "[start, end] UTF-16 character offsets into the file, half-open.",
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0 },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "contentHash": {
+          "description": "Hash of the addressed file's content at run time. Staleness guard: a later reader can detect the file changed since this diagnostic was produced.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "node", "nodeHash"],
+      "properties": {
+        "kind": { "type": "string" },
+        "node": { "type": "string" },
+        "nodeHash": { "type": "string" }
+      }
+    },
+    "repair": {
+      "description": "A checker-suggested patch. Repairs share the pillar-3 patch vocabulary. In text mode a repair lowers to `edits` (textEdit form); the semantic `op` is reserved for when the patch API lands.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "safety", "description", "edits"],
+      "properties": {
+        "id": {
+          "description": "Stable-within-run identifier for the repair (e.g. the TS fixName or an SND repair id).",
+          "type": "string",
+          "minLength": 1
+        },
+        "safety": {
+          "description": "safe = mechanical, meaning-preserving. review = plausibly changes behavior; a human/agent should confirm. unsafe = known to change behavior.",
+          "enum": ["safe", "review", "unsafe"]
+        },
+        "description": {
+          "type": "string"
+        },
+        "op": {
+          "description": "Reserved: the semantic patch operation, once the pillar-3 patch vocabulary exists. Absent in text mode v0.1.",
+          "type": "object"
+        },
+        "edits": {
+          "description": "Lowered text-edit form. Applied together as one atomic repair.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/textEdit" }
+        }
+      }
+    },
+    "textEdit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "range", "newText"],
+      "properties": {
+        "file": { "type": "string" },
+        "range": {
+          "description": "[start, end] UTF-16 character offsets, half-open. An insertion has start == end.",
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0 },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "newText": { "type": "string" }
+      }
+    }
+  }
+}

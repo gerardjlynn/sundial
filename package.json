@@ -1,0 +1,33 @@
+{
+  "name": "sundial",
+  "version": "0.0.0",
+  "description": "Agent-first authoring surface for web UI. Milestone 1: sundial check --json (pillar 1).",
+  "type": "module",
+  "bin": {
+    "sundial": "./dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "schema"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "cli": "node dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "typescript": "^5.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "vitest": "^2.1.0"
+  }
+}

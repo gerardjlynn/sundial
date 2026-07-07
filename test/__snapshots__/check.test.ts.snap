@@ -1,0 +1,69 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`envelope shape > type-error fixture matches the envelope snapshot 1`] = `
+{
+  "diagnostics": [
+    {
+      "code": "TS6133",
+      "docs": "sundial://rules/TS6133",
+      "message": "'readFileSync' is declared but its value is never read.",
+      "repairs": [
+        {
+          "description": "Remove import from 'node:fs'",
+          "edits": [
+            {
+              "file": "type-error.ts",
+              "newText": "",
+              "range": [
+                78,
+                118,
+              ],
+            },
+          ],
+          "id": "unusedIdentifier",
+          "safety": "safe",
+        },
+      ],
+      "severity": "suggestion",
+      "source": "ts",
+      "span": {
+        "contentHash": "sha256:35b483ec0db99276",
+        "file": "type-error.ts",
+        "range": [
+          78,
+          117,
+        ],
+      },
+    },
+    {
+      "code": "TS2322",
+      "docs": "sundial://rules/TS2322",
+      "message": "Type 'string' is not assignable to type 'number'.",
+      "repairs": [],
+      "severity": "error",
+      "source": "ts",
+      "span": {
+        "contentHash": "sha256:35b483ec0db99276",
+        "file": "type-error.ts",
+        "range": [
+          132,
+          137,
+        ],
+      },
+    },
+  ],
+  "run": {
+    "at": "2026-07-04T00:00:00.000Z",
+    "mode": "text",
+  },
+  "summary": {
+    "bySource": {
+      "ts": 2,
+    },
+    "errors": 1,
+    "suggestions": 1,
+    "warnings": 0,
+  },
+  "sundial": "0.1",
+}
+`;
