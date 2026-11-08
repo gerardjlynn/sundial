@@ -24,10 +24,10 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "typescript": "^5.6.0"
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
-    "@types/node": "^20.19.0",
-    "vitest": "^2.1.0"
+    "@types/node": "^26.6.6",
+    "vitest": "^5.1.0"
   }
 }
