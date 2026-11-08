@@ -37,6 +37,10 @@ const DEFAULT_OPTIONS: ts.CompilerOptions = {
   skipLibCheck: true,
   noEmit: true,
   allowJs: false,
+  // TypeScript 6 changed the default of `types` from "every visible @types/*
+  // package" to []. Text mode checks arbitrary user files, so keep the
+  // pre-6.0 behavior (e.g. `node:*` imports resolve when @types/node exists).
+  types: ["*"],
 };
 
 function resolveInput(input: CheckerInput): { fileNames: string[]; options: ts.CompilerOptions } {
